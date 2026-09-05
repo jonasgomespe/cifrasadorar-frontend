@@ -1,0 +1,53 @@
+.mobileContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: var(--bg-color);
+  max-width: 480px;
+  /* Simula tela de mobile centralizada em desktops */
+  margin: 0 auto;
+  position: relative;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+.mainContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  margin-bottom: 90px;
+  /* Espaço para o bottom nav */
+}
+
+.bottomNav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 70px;
+  background-color: var(--surface-color);
+  border-top: 1px solid var(--border-color);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.navItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.navItem:hover {
+  color: var(--text-primary);
+}
+
+.navItem.active {
+  color: var(--primary-color);
+}

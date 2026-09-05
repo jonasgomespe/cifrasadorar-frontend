@@ -1,0 +1,19 @@
+.pageTransition {
+  animation: slideFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  width: 100%;
+  height: 100%;
+  /* Necessário para não vazar a animação em certos layouts: */
+  /* overflow: auto; */
+}
+
+@keyframes slideFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
