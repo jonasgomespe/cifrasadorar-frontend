@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
-import { Home, Book, Download, User } from 'lucide-react';
+import { Home, Book, ListMusic, User } from 'lucide-react';
 import { PageTransition } from './PageTransition';
 import styles from './UserLayout.module.css';
 
@@ -24,9 +24,9 @@ export const UserLayout: React.FC = () => {
           <span>Biblioteca</span>
         </NavLink>
         
-        <NavLink to="/downloads" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
-          <Download size={24} />
-          <span>Downloads</span>
+        <NavLink to="/setlists" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>
+          <ListMusic size={24} />
+          <span>Criar ordem</span>
         </NavLink>
         
         <NavLink to="/profile" className={({ isActive }) => isActive ? `${styles.navItem} ${styles.active}` : styles.navItem}>

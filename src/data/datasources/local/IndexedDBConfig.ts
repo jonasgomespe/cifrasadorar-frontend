@@ -1,6 +1,7 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import { type Chord } from '../../../domain/entities/Chord';
 import { type Song } from '../../../domain/entities/Song';
+import { type LocalSetlist } from '../../../domain/entities/LocalSetlist';
 
 interface CifrasAppDB extends DBSchema {
   chords: {
@@ -13,10 +14,15 @@ interface CifrasAppDB extends DBSchema {
     value: Song;
     indexes: { 'by-title': string };
   };
+  setlists: {
+    key: string;
+    value: LocalSetlist;
+    indexes: { 'by-date': Date | string };
+  };
 }
 
 const DB_NAME = 'cifrasadorar-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Bumped version for setlists
 
 let dbPromise: Promise<IDBPDatabase<CifrasAppDB>> | null = null;
 
@@ -31,6 +37,10 @@ export const getDB = () => {
         if (!db.objectStoreNames.contains('songs')) {
           const songStore = db.createObjectStore('songs', { keyPath: 'id' });
           songStore.createIndex('by-title', 'title');
+        }
+        if (!db.objectStoreNames.contains('setlists')) {
+          const setlistStore = db.createObjectStore('setlists', { keyPath: 'id' });
+          setlistStore.createIndex('by-date', 'date');
         }
       },
     });
@@ -69,4 +79,21 @@ export const clearOfflineData = async () => {
   const db = await getDB();
   await db.clear('songs');
   await db.clear('chords');
+  await db.clear('setlists');
+};
+
+// Utils para Setlists Offline
+export const saveSetlistOffline = async (setlist: LocalSetlist) => {
+  const db = await getDB();
+  await db.put('setlists', setlist);
+};
+
+export const getOfflineSetlists = async (): Promise<LocalSetlist[]> => {
+  const db = await getDB();
+  return db.getAll('setlists');
+};
+
+export const removeSetlistOffline = async (setlistId: string) => {
+  const db = await getDB();
+  await db.delete('setlists', setlistId);
 };

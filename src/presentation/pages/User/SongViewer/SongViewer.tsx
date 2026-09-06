@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Minus, Eye, EyeOff } from 'lucide-react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Plus, Minus, Eye, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react';
 import styles from './SongViewer.module.css';
-import { getOfflineSongs, getOfflineChords } from '../../../../data/datasources/local/IndexedDBConfig';
+import { getOfflineSongs, getOfflineChords, getOfflineSetlists } from '../../../../data/datasources/local/IndexedDBConfig';
+import { type LocalSetlist } from '../../../../domain/entities/LocalSetlist';
 import { apiFetch } from '../../../../services/api';
 import { transposeChord, transposeLyrics } from '../../../utils/transpose';
 
@@ -25,6 +26,8 @@ interface Song {
 
 export const SongViewer: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const setlistId = searchParams.get('setlistId');
   const navigate = useNavigate();
 
   const [song, setSong] = useState<Song | null>(null);
@@ -34,9 +37,38 @@ export const SongViewer: React.FC = () => {
   const [transposeSteps, setTransposeSteps] = useState(0);
   const [showChords, setShowChords] = useState(true);
 
+  const [currentSetlist, setCurrentSetlist] = useState<LocalSetlist | null>(null);
+  const [currentIndex, setCurrentIndex] = useState<number>(-1);
+
   useEffect(() => {
     loadData();
-  }, [id]);
+    if (setlistId) {
+      loadSetlistInfo(setlistId);
+    } else {
+      setCurrentSetlist(null);
+      setCurrentIndex(-1);
+    }
+  }, [id, setlistId]);
+
+  const loadSetlistInfo = async (sId: string) => {
+    try {
+      const setlists = await getOfflineSetlists();
+      const found = setlists.find(s => s.id === sId);
+      if (found) {
+        setCurrentSetlist(found);
+        const idx = found.songIds.indexOf(id || '');
+        setCurrentIndex(idx);
+      }
+    } catch (err) {
+      console.error('Error loading setlist info:', err);
+    }
+  };
+
+  const goToSetlistSong = (targetIndex: number) => {
+    if (!currentSetlist || targetIndex < 0 || targetIndex >= currentSetlist.songIds.length) return;
+    const targetSongId = currentSetlist.songIds[targetIndex];
+    navigate(`/song/${targetSongId}?setlistId=${currentSetlist.id}`);
+  };
 
   const loadData = async () => {
     if (!id) return;
@@ -76,6 +108,14 @@ export const SongViewer: React.FC = () => {
     }
   };
 
+  const handleBack = () => {
+    if (currentSetlist) {
+      navigate(`/setlists/${currentSetlist.id}`);
+    } else {
+      navigate(-1);
+    }
+  };
+
   if (loading) {
     return <div className={styles.emptyState}>Carregando...</div>;
   }
@@ -84,7 +124,7 @@ export const SongViewer: React.FC = () => {
     return (
       <div className={styles.container}>
         <header className={styles.header}>
-          <button className={styles.backBtn} onClick={() => navigate(-1)}>
+          <button className={styles.backBtn} onClick={handleBack} aria-label="Voltar">
             <ArrowLeft size={24} />
           </button>
           <h2>Música não encontrada</h2>
@@ -96,7 +136,7 @@ export const SongViewer: React.FC = () => {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <button className={styles.backBtn} onClick={() => navigate(-1)}>
+        <button className={styles.backBtn} onClick={handleBack} aria-label="Voltar">
           <ArrowLeft size={24} />
         </button>
         <div className={styles.titleArea}>
@@ -107,6 +147,36 @@ export const SongViewer: React.FC = () => {
           <p className={styles.subtitle}>{song.artist} {song.bpm ? `• BPM: ${song.bpm}` : ''}</p>
         </div>
       </header>
+
+      {currentSetlist && (
+        <div className={styles.setlistBar}>
+          <div className={styles.setlistInfo}>
+            <span className={styles.setlistName}>Ordem: {currentSetlist.name}</span>
+            <span className={styles.setlistCounter}>
+              Música {currentIndex >= 0 ? currentIndex + 1 : '?'} de {currentSetlist.songIds.length}
+            </span>
+          </div>
+
+          <div className={styles.setlistNavBtns}>
+            <button
+              className={styles.setlistNavBtn}
+              onClick={() => goToSetlistSong(currentIndex - 1)}
+              disabled={currentIndex <= 0}
+              title="Música anterior da ordem"
+            >
+              <ChevronLeft size={16} /> Anterior
+            </button>
+            <button
+              className={styles.setlistNavBtn}
+              onClick={() => goToSetlistSong(currentIndex + 1)}
+              disabled={currentIndex >= currentSetlist.songIds.length - 1}
+              title="Próxima música da ordem"
+            >
+              Próxima <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
 
       <section className={styles.card}>
         <div className={styles.chordHeader}>

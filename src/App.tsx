@@ -9,6 +9,9 @@ import { Library } from './presentation/pages/User/Library/Library';
 import { SongViewer } from './presentation/pages/User/SongViewer/SongViewer';
 import { Profile } from './presentation/pages/User/Profile/Profile';
 import { Login } from './presentation/pages/Login/Login';
+import { SetlistsList } from './presentation/pages/User/Setlists/SetlistsList';
+import { CreateSetlist } from './presentation/pages/User/Setlists/CreateSetlist';
+import { SetlistView } from './presentation/pages/User/Setlists/SetlistView';
 import { useAuthStore } from './presentation/hooks/useAuthStore';
 
 function ProtectedRoute({ children, role }: { children: React.ReactNode, role?: 'admin' | 'user' }) {
@@ -45,7 +48,9 @@ function App() {
           <Route index element={<OfflineChords />} />
           <Route path="library" element={<Library />} />
           <Route path="song/:id" element={<SongViewer />} />
-          <Route path="downloads" element={<Navigate to="/" replace />} />
+          <Route path="setlists" element={<SetlistsList />} />
+          <Route path="setlists/create" element={<CreateSetlist />} />
+          <Route path="setlists/:id" element={<SetlistView />} />
           <Route path="profile" element={<Profile />} />
         </Route>
       </Routes>

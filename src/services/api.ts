@@ -1,7 +1,17 @@
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.cifrasadorar.applabs.pro/api';
+const getApiBaseUrl = () => {
+  let url = import.meta.env.VITE_API_URL || 'https://api.cifrasadorar.applabs.pro/api';
+  url = url.replace(/\/+$/, '');
+  if (!url.endsWith('/api') && !url.includes('/api/')) {
+    url = `${url}/api`;
+  }
+  return url;
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 
 export const apiFetch = async (endpoint: string, options?: RequestInit) => {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = `${API_BASE_URL}${cleanEndpoint}`;
   const response = await fetch(url, {
     headers: {
       'Content-Type': 'application/json',
@@ -18,3 +28,4 @@ export const apiFetch = async (endpoint: string, options?: RequestInit) => {
   const text = await response.text();
   return text ? JSON.parse(text) : null;
 };
+
