@@ -2,12 +2,14 @@ import React from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import { Home, Book, ListMusic, User } from 'lucide-react';
 import { PageTransition } from './PageTransition';
+import { InstallPwaBanner } from '../InstallPwaBanner/InstallPwaBanner';
 import styles from './UserLayout.module.css';
 
 export const UserLayout: React.FC = () => {
   return (
     <div className={styles.mobileContainer}>
       <main className={styles.mainContent}>
+        <InstallPwaBanner />
         <PageTransition>
           <Outlet />
         </PageTransition>

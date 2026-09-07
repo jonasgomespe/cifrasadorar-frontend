@@ -1,7 +1,7 @@
 .mobileContainer {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100dvh;
   background-color: var(--bg-color);
   max-width: 480px;
   /* Simula tela de mobile centralizada em desktops */
@@ -13,7 +13,7 @@
 .mainContent {
   flex: 1;
   overflow-y: auto;
-  /* padding: 14px; */
+  padding: 12px;
   margin-bottom: 90px;
   /* Espaço para o bottom nav */
 }

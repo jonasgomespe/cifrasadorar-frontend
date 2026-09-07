@@ -1,6 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Plus, Minus, Eye, EyeOff, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  Plus, 
+  Minus, 
+  Eye, 
+  EyeOff, 
+  ChevronLeft, 
+  ChevronRight, 
+  ZoomIn, 
+  ZoomOut,
+  Sun,
+  SunDim,
+  Maximize2,
+  Minimize2
+} from 'lucide-react';
 import styles from './SongViewer.module.css';
 import { getOfflineSongs, getOfflineChords, getOfflineSetlists } from '../../../../data/datasources/local/IndexedDBConfig';
 import { type LocalSetlist } from '../../../../domain/entities/LocalSetlist';
@@ -62,6 +76,107 @@ export const SongViewer: React.FC = () => {
     setFontSize(14);
     localStorage.setItem('cifras_font_size', '14');
   };
+
+  // Modo Palco: Manter Tela Acesa (Screen Wake Lock)
+  const [isWakeLockActive, setIsWakeLockActive] = useState<boolean>(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const wakeLockSentinelRef = useRef<any>(null);
+
+  const requestWakeLock = async () => {
+    if (typeof navigator !== 'undefined' && 'wakeLock' in navigator) {
+      try {
+        const sentinel = await (navigator as any).wakeLock.request('screen');
+        sentinel.addEventListener('release', () => {
+          setIsWakeLockActive(false);
+          wakeLockSentinelRef.current = null;
+        });
+        wakeLockSentinelRef.current = sentinel;
+        setIsWakeLockActive(true);
+      } catch {
+        setIsWakeLockActive(false);
+      }
+    }
+  };
+
+  const releaseWakeLock = async () => {
+    if (wakeLockSentinelRef.current) {
+      try {
+        await wakeLockSentinelRef.current.release();
+      } catch {
+        // Fallback silencioso
+      }
+      wakeLockSentinelRef.current = null;
+      setIsWakeLockActive(false);
+    }
+  };
+
+  const toggleWakeLock = async () => {
+    if (typeof navigator === 'undefined' || !('wakeLock' in navigator)) {
+      alert('Seu navegador não suporta manter a tela ligada automaticamente.');
+      return;
+    }
+
+    if (isWakeLockActive) {
+      await releaseWakeLock();
+    } else {
+      await requestWakeLock();
+    }
+  };
+
+  useEffect(() => {
+    requestWakeLock();
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isWakeLockActive) {
+        requestWakeLock();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (wakeLockSentinelRef.current) {
+        wakeLockSentinelRef.current.release().catch(() => {});
+        wakeLockSentinelRef.current = null;
+      }
+    };
+  }, []);
+
+  // Modo Palco: Modo Foco / Tela Cheia
+  const [isFocusMode, setIsFocusMode] = useState<boolean>(false);
+
+  const toggleFocusMode = async () => {
+    const nextMode = !isFocusMode;
+    setIsFocusMode(nextMode);
+
+    try {
+      if (nextMode) {
+        if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
+          await document.documentElement.requestFullscreen().catch(() => {});
+        }
+      } else {
+        if (document.exitFullscreen && document.fullscreenElement) {
+          await document.exitFullscreen().catch(() => {});
+        }
+      }
+    } catch {
+      // Fallback silencioso
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement && isFocusMode) {
+        setIsFocusMode(false);
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, [isFocusMode]);
 
   const [currentSetlist, setCurrentSetlist] = useState<LocalSetlist | null>(null);
   const [currentIndex, setCurrentIndex] = useState<number>(-1);
@@ -160,21 +275,23 @@ export const SongViewer: React.FC = () => {
   }
 
   return (
-    <div className={styles.container}>
-      <header className={styles.header}>
-        <button className={styles.backBtn} onClick={handleBack} aria-label="Voltar">
-          <ArrowLeft size={24} />
-        </button>
-        <div className={styles.titleArea}>
-          <h1 className={styles.title}>
-            {song.title}
-            {isOffline && <span className={styles.badge}>Offline</span>}
-          </h1>
-          <p className={styles.subtitle}>{song.artist} {song.bpm ? `• BPM: ${song.bpm}` : ''}</p>
-        </div>
-      </header>
+    <div className={`${styles.container} ${isFocusMode ? styles.focusContainer : ''}`}>
+      {!isFocusMode && (
+        <header className={styles.header}>
+          <button className={styles.backBtn} onClick={handleBack} aria-label="Voltar">
+            <ArrowLeft size={24} />
+          </button>
+          <div className={styles.titleArea}>
+            <h1 className={styles.title}>
+              {song.title}
+              {isOffline && <span className={styles.badge}>Offline</span>}
+            </h1>
+            <p className={styles.subtitle}>{song.artist} {song.bpm ? `• BPM: ${song.bpm}` : ''}</p>
+          </div>
+        </header>
+      )}
 
-      {currentSetlist && (
+      {!isFocusMode && currentSetlist && (
         <div className={styles.setlistBar}>
           <div className={styles.setlistInfo}>
             <span className={styles.setlistName}>Ordem: {currentSetlist.name}</span>
@@ -204,14 +321,46 @@ export const SongViewer: React.FC = () => {
         </div>
       )}
 
-      <section className={styles.card}>
+      <section className={`${styles.card} ${isFocusMode ? styles.focusCard : ''}`}>
         <div className={styles.chordHeader}>
           <div>
-            <h2 className={styles.chordTitle}>{chord ? transposeChord(chord.name, transposeSteps) : 'Sem Acorde'}</h2>
-            <span className={styles.chordTonality}>{chord ? `Tom: ${transposeChord(chord.tonality, transposeSteps)}` : ''}</span>
+            <h2 className={styles.chordTitle}>
+              {isFocusMode ? `${song.title} • ` : ''}
+              {chord ? transposeChord(chord.name, transposeSteps) : 'Sem Acorde'}
+            </h2>
+            <span className={styles.chordTonality}>
+              {chord ? `Tom: ${transposeChord(chord.tonality, transposeSteps)}` : ''}
+              {song.bpm ? ` • ${song.bpm} BPM` : ''}
+            </span>
           </div>
 
           <div className={styles.actionsArea}>
+            {isFocusMode && currentSetlist && (
+              <div className={styles.focusSetlistNav} title="Navegação da Ordem">
+                <button
+                  className={styles.focusNavBtn}
+                  onClick={() => goToSetlistSong(currentIndex - 1)}
+                  disabled={currentIndex <= 0}
+                  title="Música anterior"
+                  aria-label="Música anterior"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span className={styles.focusCounter}>
+                  {currentIndex >= 0 ? currentIndex + 1 : '?'}/{currentSetlist.songIds.length}
+                </span>
+                <button
+                  className={styles.focusNavBtn}
+                  onClick={() => goToSetlistSong(currentIndex + 1)}
+                  disabled={currentIndex >= currentSetlist.songIds.length - 1}
+                  title="Próxima música"
+                  aria-label="Próxima música"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
+
             <div className={styles.zoomControls} title="Ajustar tamanho da fonte">
               <button
                 className={styles.zoomBtn}
@@ -260,6 +409,24 @@ export const SongViewer: React.FC = () => {
               aria-label="Alternar Notas"
             >
               {showChords ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+
+            <button
+              className={`${styles.iconBtn} ${isWakeLockActive ? styles.wakeLockActive : ''}`}
+              onClick={toggleWakeLock}
+              title={isWakeLockActive ? "Tela sempre acesa (Ativo)" : "Manter tela acesa (Inativo)"}
+              aria-label="Manter tela acesa"
+            >
+              {isWakeLockActive ? <Sun size={20} /> : <SunDim size={20} />}
+            </button>
+
+            <button
+              className={`${styles.iconBtn} ${isFocusMode ? styles.focusActive : ''}`}
+              onClick={toggleFocusMode}
+              title={isFocusMode ? "Sair do Modo Palco" : "Modo Palco (Tela Cheia)"}
+              aria-label="Modo Palco"
+            >
+              {isFocusMode ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
             </button>
           </div>
         </div>
