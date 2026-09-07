@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Plus, Minus, Eye, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Plus, Minus, Eye, EyeOff, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
 import styles from './SongViewer.module.css';
 import { getOfflineSongs, getOfflineChords, getOfflineSetlists } from '../../../../data/datasources/local/IndexedDBConfig';
 import { type LocalSetlist } from '../../../../domain/entities/LocalSetlist';
@@ -36,6 +36,32 @@ export const SongViewer: React.FC = () => {
   const [isOffline, setIsOffline] = useState(false);
   const [transposeSteps, setTransposeSteps] = useState(0);
   const [showChords, setShowChords] = useState(true);
+  const [fontSize, setFontSize] = useState<number>(() => {
+    const saved = localStorage.getItem('cifras_font_size');
+    const parsed = saved ? parseInt(saved, 10) : 14;
+    return !isNaN(parsed) && parsed >= 10 && parsed <= 32 ? parsed : 14;
+  });
+
+  const handleZoomIn = () => {
+    setFontSize(prev => {
+      const next = Math.min(prev + 1, 32);
+      localStorage.setItem('cifras_font_size', String(next));
+      return next;
+    });
+  };
+
+  const handleZoomOut = () => {
+    setFontSize(prev => {
+      const next = Math.max(prev - 1, 10);
+      localStorage.setItem('cifras_font_size', String(next));
+      return next;
+    });
+  };
+
+  const handleResetZoom = () => {
+    setFontSize(14);
+    localStorage.setItem('cifras_font_size', '14');
+  };
 
   const [currentSetlist, setCurrentSetlist] = useState<LocalSetlist | null>(null);
   const [currentIndex, setCurrentIndex] = useState<number>(-1);
@@ -186,14 +212,43 @@ export const SongViewer: React.FC = () => {
           </div>
 
           <div className={styles.actionsArea}>
-            <div className={styles.transposeControls}>
-              <button className={styles.transposeBtn} onClick={() => setTransposeSteps(p => p - 1)} aria-label="Descer meio tom">
+            <div className={styles.zoomControls} title="Ajustar tamanho da fonte">
+              <button
+                className={styles.zoomBtn}
+                onClick={handleZoomOut}
+                disabled={fontSize <= 10}
+                aria-label="Diminuir tamanho da fonte"
+                title="Diminuir texto (Zoom -)"
+              >
+                <ZoomOut size={16} />
+              </button>
+              <button
+                className={styles.zoomValue}
+                onClick={handleResetZoom}
+                aria-label="Restaurar tamanho padrão"
+                title="Clique para restaurar padrão (14px)"
+              >
+                {fontSize}px
+              </button>
+              <button
+                className={styles.zoomBtn}
+                onClick={handleZoomIn}
+                disabled={fontSize >= 32}
+                aria-label="Aumentar tamanho da fonte"
+                title="Aumentar texto (Zoom +)"
+              >
+                <ZoomIn size={16} />
+              </button>
+            </div>
+
+            <div className={styles.transposeControls} title="Transposição de tom">
+              <button className={styles.transposeBtn} onClick={() => setTransposeSteps(p => p - 1)} aria-label="Descer meio tom" title="Descer meio tom (-1)">
                 <Minus size={16} />
               </button>
               <span className={styles.transposeValue}>
                 {transposeSteps > 0 ? `+${transposeSteps}` : transposeSteps}
               </span>
-              <button className={styles.transposeBtn} onClick={() => setTransposeSteps(p => p + 1)} aria-label="Subir meio tom">
+              <button className={styles.transposeBtn} onClick={() => setTransposeSteps(p => p + 1)} aria-label="Subir meio tom" title="Subir meio tom (+1)">
                 <Plus size={16} />
               </button>
             </div>
@@ -209,7 +264,7 @@ export const SongViewer: React.FC = () => {
           </div>
         </div>
 
-        <div className={styles.instructionsArea}>
+        <div className={styles.instructionsArea} style={{ fontSize: `${fontSize}px` }}>
           {chord && chord.instructions && (
             <div style={{ marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid var(--border-color)' }}>
               <strong>Instruções do Acorde Principal:</strong><br />

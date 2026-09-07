@@ -50,8 +50,8 @@
 
 .card {
   background-color: var(--surface-color);
-  border-radius: var(--radius-md);
-  padding: 24px;
+  /* border-radius: var(--radius-md); */
+  padding: 14px;
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-color);
   flex: 1;
@@ -74,6 +74,58 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
+}
+
+.zoomControls {
+  display: flex;
+  align-items: center;
+  background-color: var(--bg-color);
+  border-radius: 20px;
+  padding: 4px;
+  border: 1px solid var(--border-color);
+}
+
+.zoomBtn {
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+}
+
+.zoomBtn:hover:not(:disabled) {
+  background-color: var(--border-color);
+}
+
+.zoomBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.zoomValue {
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  padding: 2px 8px;
+  font-weight: 600;
+  font-size: 13px;
+  min-width: 44px;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.zoomValue:hover {
+  background-color: var(--border-color);
+  color: var(--primary-color);
 }
 
 .transposeControls {
@@ -141,10 +193,11 @@
 
 .instructionsArea {
   font-family: monospace;
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1.6;
   white-space: pre-wrap;
   flex: 1;
+  overflow-x: auto;
 }
 
 .emptyState {
@@ -224,4 +277,3 @@
   opacity: 0.3;
   cursor: not-allowed;
 }
-

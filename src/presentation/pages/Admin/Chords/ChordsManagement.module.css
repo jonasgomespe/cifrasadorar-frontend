@@ -128,7 +128,7 @@
   .form {
     grid-template-columns: 1fr;
   }
-  
+
   .listHeader {
     flex-direction: column;
     align-items: stretch;
