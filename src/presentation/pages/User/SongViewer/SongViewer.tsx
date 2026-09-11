@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -13,13 +13,16 @@ import {
   Sun,
   SunDim,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Play,
+  Pause
 } from 'lucide-react';
 import styles from './SongViewer.module.css';
 import { getOfflineSongs, getOfflineChords, getOfflineSetlists } from '../../../../data/datasources/local/IndexedDBConfig';
 import { type LocalSetlist } from '../../../../domain/entities/LocalSetlist';
 import { apiFetch } from '../../../../services/api';
-import { transposeChord, transposeLyrics } from '../../../utils/transpose';
+import { transposeChord, transposeLyrics, parseSongSections } from '../../../utils/transpose';
+import { SongToolsDrawer } from '../../../components/SongToolsDrawer/SongToolsDrawer';
 
 interface Chord {
   id: string;
@@ -38,12 +41,15 @@ interface Song {
   lyrics?: string | null;
 }
 
+const SPEED_PRESETS = [0.5, 0.8, 1.0, 1.3, 1.6, 2.0, 2.5, 3.0];
+
 export const SongViewer: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const setlistId = searchParams.get('setlistId');
   const navigate = useNavigate();
 
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [song, setSong] = useState<Song | null>(null);
   const [chord, setChord] = useState<Chord | null>(null);
   const [loading, setLoading] = useState(true);
@@ -55,6 +61,33 @@ export const SongViewer: React.FC = () => {
     const parsed = saved ? parseInt(saved, 10) : 14;
     return !isNaN(parsed) && parsed >= 10 && parsed <= 32 ? parsed : 14;
   });
+
+  // Auto-scroll
+  const [isAutoScrolling, setIsAutoScrolling] = useState<boolean>(false);
+  const [speedIndex, setSpeedIndex] = useState<number>(() => {
+    const saved = localStorage.getItem('cifras_scroll_speed');
+    const parsed = saved ? parseInt(saved, 10) : 2;
+    return !isNaN(parsed) && parsed >= 0 && parsed < SPEED_PRESETS.length ? parsed : 2;
+  });
+  const scrollAnimRef = useRef<number | null>(null);
+  const scrollAccRef = useRef<number>(0);
+
+  const handleSpeedDown = () => {
+    setSpeedIndex(prev => {
+      const next = Math.max(0, prev - 1);
+      localStorage.setItem('cifras_scroll_speed', String(next));
+      return next;
+    });
+  };
+
+  const handleSpeedUp = () => {
+    setSpeedIndex(prev => {
+      const next = Math.min(SPEED_PRESETS.length - 1, prev + 1);
+      localStorage.setItem('cifras_scroll_speed', String(next));
+      return next;
+    });
+  };
+
 
   const handleZoomIn = () => {
     setFontSize(prev => {
@@ -178,8 +211,96 @@ export const SongViewer: React.FC = () => {
     };
   }, [isFocusMode]);
 
+  // Estrutura da Música (Chips de Seções)
+  const sections = useMemo(() => {
+    return parseSongSections(song?.lyrics);
+  }, [song?.lyrics]);
+
+  const scrollToSection = (sectionId: string) => {
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add(styles.highlightSection);
+      setTimeout(() => {
+        el.classList.remove(styles.highlightSection);
+      }, 1600);
+    }
+  };
+
+  // Helper para obter o container de rolagem atual (modo normal ou palco)
+  const getScrollContainer = (): HTMLElement | Window => {
+    if (isFocusMode && containerRef.current) {
+      return containerRef.current;
+    }
+    let cur = containerRef.current?.parentElement;
+    while (cur && cur !== document.body && cur !== document.documentElement) {
+      const style = window.getComputedStyle(cur);
+      if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+        return cur;
+      }
+      cur = cur.parentElement;
+    }
+    return window;
+  };
+
+  // Auto-scroll loop contínuo e suave
+  useEffect(() => {
+    if (!isAutoScrolling) {
+      if (scrollAnimRef.current) {
+        cancelAnimationFrame(scrollAnimRef.current);
+        scrollAnimRef.current = null;
+      }
+      return;
+    }
+
+    let lastTime = performance.now();
+    const speedMultiplier = SPEED_PRESETS[speedIndex];
+
+    const step = (now: number) => {
+      const dt = (now - lastTime) / 1000;
+      lastTime = now;
+
+      // Velocidade base: ~28px por segundo multiplicado pelo multiplicador de velocidade
+      const px = 28 * speedMultiplier * dt;
+      scrollAccRef.current += px;
+
+      if (scrollAccRef.current >= 1) {
+        const toMove = Math.floor(scrollAccRef.current);
+        scrollAccRef.current -= toMove;
+
+        const target = getScrollContainer();
+        if (target === window) {
+          window.scrollBy({ top: toMove, behavior: 'auto' });
+          if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 8) {
+            setIsAutoScrolling(false);
+            return;
+          }
+        } else {
+          const el = target as HTMLElement;
+          el.scrollTop += toMove;
+          if (el.scrollHeight - el.scrollTop - el.clientHeight <= 4) {
+            setIsAutoScrolling(false);
+            return;
+          }
+        }
+      }
+
+      scrollAnimRef.current = requestAnimationFrame(step);
+    };
+
+    scrollAnimRef.current = requestAnimationFrame(step);
+
+    return () => {
+      if (scrollAnimRef.current) {
+        cancelAnimationFrame(scrollAnimRef.current);
+        scrollAnimRef.current = null;
+      }
+    };
+  }, [isAutoScrolling, speedIndex, isFocusMode]);
+
   const [currentSetlist, setCurrentSetlist] = useState<LocalSetlist | null>(null);
   const [currentIndex, setCurrentIndex] = useState<number>(-1);
+
 
   useEffect(() => {
     loadData();
@@ -275,7 +396,10 @@ export const SongViewer: React.FC = () => {
   }
 
   return (
-    <div className={`${styles.container} ${isFocusMode ? styles.focusContainer : ''}`}>
+    <div 
+      ref={containerRef} 
+      className={`${styles.container} ${isFocusMode ? styles.focusContainer : ''}`}
+    >
       {!isFocusMode && (
         <header className={styles.header}>
           <button className={styles.backBtn} onClick={handleBack} aria-label="Voltar">
@@ -361,6 +485,52 @@ export const SongViewer: React.FC = () => {
               </div>
             )}
 
+            {/* Controle de Rolagem Automática (Auto-scroll) */}
+            <div className={styles.autoScrollControls} title="Rolagem automática da cifra">
+              <button
+                type="button"
+                className={`${styles.autoScrollPlayBtn} ${isAutoScrolling ? styles.autoScrollActive : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsAutoScrolling(p => !p);
+                }}
+                aria-label={isAutoScrolling ? "Parar rolagem" : "Iniciar rolagem automática"}
+                title={isAutoScrolling ? "Parar auto-scroll (Stop)" : "Iniciar auto-scroll"}
+              >
+                {isAutoScrolling ? <Pause size={15} /> : <Play size={15} fill="currentColor" />}
+                <span className={styles.autoScrollLabel}>{isAutoScrolling ? 'Parar' : 'Rolar'}</span>
+              </button>
+              <button
+                type="button"
+                className={styles.speedBtn}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSpeedDown();
+                }}
+                disabled={speedIndex <= 0}
+                aria-label="Diminuir velocidade"
+                title="Diminuir velocidade do scroll"
+              >
+                <Minus size={13} />
+              </button>
+              <span className={styles.speedValue} title="Multiplicador de velocidade">
+                {SPEED_PRESETS[speedIndex]}x
+              </span>
+              <button
+                type="button"
+                className={styles.speedBtn}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSpeedUp();
+                }}
+                disabled={speedIndex >= SPEED_PRESETS.length - 1}
+                aria-label="Aumentar velocidade"
+                title="Aumentar velocidade do scroll"
+              >
+                <Plus size={13} />
+              </button>
+            </div>
+
             <div className={styles.zoomControls} title="Ajustar tamanho da fonte">
               <button
                 className={styles.zoomBtn}
@@ -431,6 +601,27 @@ export const SongViewer: React.FC = () => {
           </div>
         </div>
 
+        {/* Chips de Estrutura da Música (Intro, Verso, Refrão, Ponte, etc.) */}
+        {sections.length > 0 && (
+          <div className={styles.structureBar}>
+            <span className={styles.structureTitle}>Estrutura:</span>
+            <div className={styles.structureChipsScroll}>
+              {sections.map((section) => (
+                <button
+                  key={section.id}
+                  type="button"
+                  className={`${styles.structureChip} ${styles[`chip_${section.type}`] || ''}`}
+                  onClick={() => scrollToSection(section.id)}
+                  title={`Ir para ${section.name}`}
+                >
+                  <span className={styles.chipBullet}></span>
+                  {section.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className={styles.instructionsArea} style={{ fontSize: `${fontSize}px` }}>
           {chord && chord.instructions && (
             <div style={{ marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid var(--border-color)' }}>
@@ -445,6 +636,27 @@ export const SongViewer: React.FC = () => {
           )}
         </div>
       </section>
+
+      {/* Painel Flutuante / Drawer de Ferramentas de Palco */}
+      <SongToolsDrawer
+        isAutoScrolling={isAutoScrolling}
+        onToggleAutoScroll={() => setIsAutoScrolling(p => !p)}
+        speedIndex={speedIndex}
+        speedPresets={SPEED_PRESETS}
+        onSpeedDown={handleSpeedDown}
+        onSpeedUp={handleSpeedUp}
+        onSelectSpeed={(idx) => {
+          setSpeedIndex(idx);
+          localStorage.setItem('cifras_scroll_speed', String(idx));
+        }}
+        isFocusMode={isFocusMode}
+        fontSize={fontSize}
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        transposeSteps={transposeSteps}
+        onTransposeUp={() => setTransposeSteps(p => p + 1)}
+        onTransposeDown={() => setTransposeSteps(p => p - 1)}
+      />
     </div>
   );
 };

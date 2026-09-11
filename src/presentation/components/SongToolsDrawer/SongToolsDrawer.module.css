@@ -1,0 +1,520 @@
+/* =========================================
+   Gatilho Flutuante (Trigger Button)
+   Fixo diretamente no viewport (document.body)
+   ========================================= */
+.triggerBtn {
+  position: fixed;
+  bottom: 84px;
+  right: 20px;
+  z-index: 9990;
+  background-color: #1e293b;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 28px;
+  padding: 9px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.32);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.triggerBtn:hover {
+  transform: translateY(-2px);
+  background-color: #0f172a;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.4);
+}
+
+.triggerBtn:active {
+  transform: translateY(0);
+}
+
+.triggerFocus {
+  bottom: 24px !important;
+  right: 24px !important;
+}
+
+.triggerActive {
+  background-color: #0f172a;
+  border-color: #22c55e;
+  box-shadow: 0 4px 18px rgba(34, 197, 94, 0.38);
+}
+
+.triggerText {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.pulseDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: #22c55e;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  animation: dotPulse 1.6s infinite;
+}
+
+@keyframes dotPulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+/* =========================================
+   Backdrop & Drawer Container Fixo no Rodapé
+   ========================================= */
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.52);
+  backdrop-filter: blur(3px);
+  z-index: 9998;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.drawerContainer {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  background-color: var(--surface-color);
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-color);
+  border-bottom: none;
+  z-index: 9999;
+  padding: 0 16px 28px 16px;
+  box-sizing: border-box;
+  animation: slideUpBottom 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideUpBottom {
+  from {
+    transform: translate(-50%, 100%);
+  }
+  to {
+    transform: translate(-50%, 0);
+  }
+}
+
+.drawerFocus {
+  max-width: 520px;
+}
+
+/* Barra superior de arraste */
+.drawerHandleBar {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0 8px 0;
+  cursor: pointer;
+}
+
+.handlePill {
+  width: 40px;
+  height: 4px;
+  background-color: var(--border-color);
+  border-radius: 4px;
+}
+
+/* Cabeçalho do Drawer */
+.drawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 4px 12px 4px;
+}
+
+.titleWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.titleWrapper h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.closeBtn:hover {
+  background-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+/* =========================================
+   Barra de Abas (Extensível para Menus Futuros)
+   ========================================= */
+.tabsBar {
+  display: flex;
+  background-color: var(--bg-color);
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border-color);
+}
+
+.tabBtn {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 9px 8px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.tabBtn:hover {
+  color: var(--text-primary);
+  background-color: rgba(var(--primary-rgb), 0.06);
+}
+
+.tabBtn:active {
+  transform: scale(0.96);
+}
+
+.tabActive {
+  background-color: var(--surface-color) !important;
+  color: var(--primary-color) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-weight: 700;
+  transform: scale(1.02);
+}
+
+/* =========================================
+   Conteúdo das Abas e Animações
+   ========================================= */
+.tabContent {
+  display: flex;
+  flex-direction: column;
+  min-height: 180px;
+}
+
+/* Animação Suave ao Alternar de Aba */
+.tabPaneAnimation {
+  animation: tabFadeSlide 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes tabFadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Aba 1: Auto-Scroll */
+.scrollSection {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mainScrollToggleBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background-color: var(--primary-color);
+  color: #ffffff;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 20px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(var(--primary-rgb), 0.35);
+  transition: all 0.2s ease;
+}
+
+.mainScrollToggleBtn:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+}
+
+.mainScrollToggleBtn:active {
+  transform: translateY(0);
+}
+
+.btnRunning {
+  background-color: #ef4444;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+}
+
+.speedControlRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background-color: var(--bg-color);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.speedLabelArea {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fieldLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.speedBadge {
+  background-color: var(--primary-color);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.stepperGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stepperBtn {
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.stepperBtn:hover:not(:disabled) {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.stepperBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.presetsChips {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.presetChip {
+  flex: 1;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 8px 2px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.presetChip:hover {
+  border-color: var(--primary-color);
+}
+
+.presetChipActive {
+  background-color: rgba(var(--primary-rgb), 0.12);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+  font-weight: 700;
+}
+
+.helperTip {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin: 0;
+  padding: 2px 2px 0 2px;
+}
+
+/* Aba 2: Tom & Zoom */
+.toneSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toneSection .toolRow:nth-child(1) {
+  animation: itemPopIn 0.25s 0.03s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.toneSection .toolRow:nth-child(2) {
+  animation: itemPopIn 0.25s 0.07s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.toolRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background-color: var(--bg-color);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.toolRow:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.1);
+  transform: translateY(-1px);
+}
+
+.toolInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toolInfo strong {
+  display: block;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.toolSub {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* Aba 3: Mais Menus (Plugin Architecture) */
+.moreSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.moreSection .featurePreviewCard:nth-child(1) {
+  animation: itemPopIn 0.25s 0.03s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.moreSection .featurePreviewCard:nth-child(2) {
+  animation: itemPopIn 0.25s 0.07s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.featurePreviewCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background-color: var(--bg-color);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  opacity: 0.88;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.featurePreviewCard:hover {
+  opacity: 1;
+  border-color: var(--primary-color);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+@keyframes itemPopIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.featureIcon {
+  font-size: 24px;
+}
+
+.featureDetails {
+  flex: 1;
+}
+
+.featureDetails strong {
+  display: block;
+  font-size: 13px;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.featureDetails p {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.comingSoonBadge {
+  background-color: rgba(100, 116, 139, 0.15);
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 7px;
+  border-radius: 6px;
+}

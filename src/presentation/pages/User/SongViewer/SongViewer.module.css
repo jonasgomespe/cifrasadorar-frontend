@@ -198,6 +198,7 @@
   white-space: pre-wrap;
   flex: 1;
   overflow-x: auto;
+  padding-bottom: 140px;
 }
 
 .emptyState {
@@ -355,4 +356,296 @@
   color: var(--primary-color);
   min-width: 32px;
   text-align: center;
+}
+
+/* =========================================
+   Controles de Auto-Scroll
+   ========================================= */
+.autoScrollControls {
+  display: flex;
+  align-items: center;
+  background-color: var(--bg-color);
+  border-radius: 20px;
+  padding: 3px 6px;
+  border: 1px solid var(--border-color);
+  gap: 2px;
+}
+
+.autoScrollPlayBtn {
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.autoScrollPlayBtn:hover {
+  background-color: var(--border-color);
+}
+
+.autoScrollActive {
+  background-color: rgba(67, 160, 71, 0.15) !important;
+  color: var(--primary-color) !important;
+  font-weight: 700;
+}
+
+.autoScrollLabel {
+  font-size: 12px;
+}
+
+.speedBtn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.speedBtn:hover:not(:disabled) {
+  background-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.speedBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.speedValue {
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 30px;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+/* =========================================
+   Estrutura da Música (Barra de Chips)
+   ========================================= */
+.structureBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 4px 14px 4px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.structureTitle {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.structureChipsScroll {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 2px 0;
+}
+
+.structureChipsScroll::-webkit-scrollbar {
+  display: none;
+}
+
+.structureChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.structureChip:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.95);
+}
+
+.structureChip:active {
+  transform: translateY(0);
+}
+
+.chipBullet {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+/* Variações de Cores dos Chips de Estrutura */
+.chip_intro {
+  background-color: rgba(14, 165, 233, 0.1);
+  color: #0284c7;
+  border-color: rgba(14, 165, 233, 0.3);
+}
+
+.chip_verse {
+  background-color: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.chip_pre-chorus {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.chip_chorus {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #059669;
+  border-color: rgba(16, 185, 129, 0.4);
+  font-weight: 700;
+}
+
+.chip_bridge {
+  background-color: rgba(139, 92, 246, 0.12);
+  color: #7c3aed;
+  border-color: rgba(139, 92, 246, 0.35);
+}
+
+.chip_solo {
+  background-color: rgba(236, 72, 153, 0.1);
+  color: #db2777;
+  border-color: rgba(236, 72, 153, 0.3);
+}
+
+.chip_instrumental {
+  background-color: rgba(20, 184, 166, 0.1);
+  color: #0d9488;
+  border-color: rgba(20, 184, 166, 0.3);
+}
+
+.chip_outro {
+  background-color: rgba(100, 116, 139, 0.12);
+  color: #475569;
+  border-color: rgba(100, 116, 139, 0.3);
+}
+
+/* =========================================
+   Badges Inline no Texto da Cifra
+   ========================================= */
+:global(.song-section-chip) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 0.85em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  margin: 14px 0 6px 0;
+  border-left: 3px solid;
+  scroll-margin-top: 80px;
+  transition: background-color 0.3s ease;
+}
+
+:global(.song-section-chip .chip-dot) {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+:global(.song-section-chip.section-intro) {
+  background-color: rgba(14, 165, 233, 0.12);
+  color: #0284c7;
+  border-color: #0284c7;
+}
+
+:global(.song-section-chip.section-verse) {
+  background-color: rgba(99, 102, 241, 0.12);
+  color: #6366f1;
+  border-color: #6366f1;
+}
+
+:global(.song-section-chip.section-pre-chorus) {
+  background-color: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  border-color: #d97706;
+}
+
+:global(.song-section-chip.section-chorus) {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #059669;
+  border-color: #059669;
+}
+
+:global(.song-section-chip.section-bridge) {
+  background-color: rgba(139, 92, 246, 0.15);
+  color: #7c3aed;
+  border-color: #7c3aed;
+}
+
+:global(.song-section-chip.section-solo) {
+  background-color: rgba(236, 72, 153, 0.12);
+  color: #db2777;
+  border-color: #db2777;
+}
+
+:global(.song-section-chip.section-instrumental) {
+  background-color: rgba(20, 184, 166, 0.12);
+  color: #0d9488;
+  border-color: #0d9488;
+}
+
+:global(.song-section-chip.section-outro) {
+  background-color: rgba(100, 116, 139, 0.15);
+  color: #475569;
+  border-color: #475569;
+}
+
+:global(.song-section-chip.section-other) {
+  background-color: rgba(100, 116, 139, 0.1);
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
+/* Destaque ao clicar no chip da estrutura */
+.highlightSection {
+  animation: pulseSectionHighlight 1.5s ease-out;
+}
+
+@keyframes pulseSectionHighlight {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    filter: brightness(1.25);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
 }
